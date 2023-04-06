@@ -20,7 +20,7 @@ class User extends Sequelize.Model{
                 password: {
                     type: Sequelize.STRING,
                     validate:{
-                        len:{args:[4,15] ,msg:'Insert a password with length between 4 and 15 characters'}
+                        notEmpty:{msg:'Insert a email value'},
                     }
                 },
             },

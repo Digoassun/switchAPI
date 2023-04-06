@@ -1,4 +1,6 @@
 const User = require('../models/User')
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 
 module.exports = {
     async getAll(req,res){
@@ -20,7 +22,7 @@ module.exports = {
             if(!user){
                 return res.status(400).json({error: 'User not found'})
             }
-            return res.json(user);
+            return res.status(200).json(user);
         } catch(err){
             res.status(400).send({error:err})
         }
@@ -29,14 +31,14 @@ module.exports = {
     async post(req, res){
         try {
             const {name, email, password} = req.body;
-
+            
             const user = await User.create({name,email,password})
-            return res.json(user)
+            return res.status(200).json(user)
         } catch(err){
             res.status(400).send({error:err})
         }
     },
-
+    
     async update(req, res){
         try{
             const user = await User.findOne({where: {id: req.params.id}});
@@ -46,7 +48,7 @@ module.exports = {
                 return res.status(400).json({error: 'User not found'})
             }
             await user.update({name,email,password}, {where: req.params.id})
-            return res.json(user)
+            return res.status(200).json(user)
         } catch(err){
             res.status(400).send({error:err})
         }
@@ -59,7 +61,53 @@ module.exports = {
                 return res.status(400).json({error: 'User not found'})
             }
             await user.destroy()
-            return res.json(user)
+            return res.status(200).json(user)
+        } catch(err){
+            res.status(400).send({error:err})
+        }
+    },
+
+    async register(req, res){
+        try{
+            const {name, email, password, passwordConfirmation} = req.body;
+            const user = await User.findOne({where: {email: email}});
+            if(user){
+                return res.status(400).json({error: 'Email already being used'})
+            }
+
+            if(passwordConfirmation !== password){
+                return res.status(400).json({error: 'The passwords must be equal'})
+            }
+
+            const salt = await bcrypt.genSalt(12)
+            const passwordHash = await bcrypt.hash(password, salt)
+
+            const newUser = await User.create({name,email,password: passwordHash})  
+            console.log('aqui',newUser);
+            return res.status(200).json(newUser)
+        } catch(err){
+            res.status(400).send({error:err})
+        }
+    },
+
+    async login(req, res){
+        try{
+            const {email, password} = req.body;
+            const user = await User.findOne({where: {email: email}});
+            if(!user){
+                return res.status(400).json({error: 'User not found'})
+            }
+
+            const checkPassoword = await bcrypt.compare(password, user.password)
+            if(!checkPassoword){
+                return res.status(400).json({error: 'Invalid password'})
+            }
+            const secret = process.env.SECRET
+            console.log(process.env.SECRET);
+            const token = jwt.sign({id: user.id}, secret)
+
+            res.status(200).json({msg: 'Autenticação realizada com sucesso', token})
+
         } catch(err){
             res.status(400).send({error:err})
         }
