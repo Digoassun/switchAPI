@@ -4,9 +4,25 @@ class User extends Sequelize.Model{
     static init(sequelize){
         super.init(
             {
-                name: Sequelize.STRING,
-                email: Sequelize.STRING,
-                password: Sequelize.STRING
+                name: {
+                    type:Sequelize.STRING,
+                    validate:{
+                        notEmpty:{msg:'Insert a name value'}
+                    }
+                },                
+                email: {
+                    type: Sequelize.STRING,
+                    validate:{
+                        notEmpty:{msg:'Insert a email value'},
+                        isEmail:{msg:'Insert a valid email'}
+                    }
+                },
+                password: {
+                    type: Sequelize.STRING,
+                    validate:{
+                        len:{args:[4,15] ,msg:'Insert a password with length between 4 and 15 characters'}
+                    }
+                },
             },
             {
                 sequelize

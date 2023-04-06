@@ -3,8 +3,11 @@ const UserController = require('./controllers/UserController')
 
 const routes = new Router();
 
-routes.get('/users', UserController.search);
-routes.post('/users', UserController.store);
+routes.get('/users', UserController.getAll);
+routes.get('/users/:id', UserController.getOne);
+routes.post('/users', UserController.post);
+routes.put('/users/:id', UserController.update);
+routes.delete('/users/:id', UserController.delete);
 routes.post('/')
 
 module.exports = routes;
