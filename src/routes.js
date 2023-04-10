@@ -1,12 +1,13 @@
 const Router = require('express');
-const UserController = require('./controllers/UserController')
+const UserController = require('./controllers/UserController');
+const loginMiddleware = require('./middleware/login.middleware');
 
 const routes = new Router();
 
 routes.get('/users', UserController.getAll);
 routes.get('/users/:id', UserController.getOne);
 routes.post('/register', UserController.register);
-routes.post('/auth/login', UserController.login);
+routes.post('/auth/login', loginMiddleware, UserController.login);
 routes.put('/users/:id', UserController.update);
 routes.delete('/users/:id', UserController.delete);
 

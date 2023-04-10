@@ -1,0 +1,19 @@
+const jwt = require('jsonwebtoken');
+
+module.exports = async (req, res, next) =>{    
+    const auth = req.headers.authorization;
+    
+    if(!auth){
+        return res.status(130).json({error:true, message:"Authentication token doesn't exist"})
+    }
+    
+    // Spliting token "bearer --token--"
+    const [, token] = auth.split(' ');
+    try{
+        
+        jwt.verify(token, process.env.SECRET)
+        next()
+    }catch(err){
+        return res.status(400).json({message:"Invalid token"})
+    }
+}
