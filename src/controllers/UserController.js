@@ -27,17 +27,6 @@ module.exports = {
             res.status(400).send({error:err})
         }
     },
-
-    async post(req, res){
-        try {
-            const {name, email, password} = req.body;
-            
-            const user = await User.create({name,email,password})
-            return res.status(200).json(user)
-        } catch(err){
-            res.status(400).send({error:err})
-        }
-    },
     
     async update(req, res){
         try{
@@ -83,7 +72,6 @@ module.exports = {
             const passwordHash = await bcrypt.hash(password, salt)
 
             const newUser = await User.create({name,email,password: passwordHash})  
-            console.log('aqui',newUser);
             return res.status(200).json(newUser)
         } catch(err){
             res.status(400).send({error:err})
@@ -103,7 +91,6 @@ module.exports = {
                 return res.status(400).json({error: 'Invalid password'})
             }
             const secret = process.env.SECRET
-            console.log(process.env.SECRET);
             const token = jwt.sign({id: user.id}, secret)
 
             res.status(200).json({msg: 'Autenticação realizada com sucesso', token})
