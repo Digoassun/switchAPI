@@ -1,5 +1,4 @@
 const User = require('../models/User')
-const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
 module.exports = {
@@ -66,15 +65,12 @@ module.exports = {
 
             if(passwordConfirmation !== password){
                 return res.status(400).json({error: 'The passwords must be equal'})
-            }
+            }           
 
-            const salt = await bcrypt.genSalt(12)
-            const passwordHash = await bcrypt.hash(password, salt)
-
-            const newUser = await User.create({name,email,password: passwordHash})  
+            const newUser = await User.create({name,email,password})  
             return res.status(200).json(newUser)
         } catch(err){
-            res.status(400).send({error:err})
+            res.status(400).send({error:err.errors[0].message});
         }
     },
 
