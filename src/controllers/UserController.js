@@ -7,11 +7,11 @@ module.exports = {
             const users = await User.findAll();
 
             if(!users){
-                return res.status(400).json({error: 'This table is empty'})
+                return res.status(400).json({error:true, msg: 'Não existem usuários cadastrados'})
             }
             return res.json(users)
         } catch(err){
-            res.status(400).send({error:err})
+            res.status(400).send({error:true, msg:err})
         }
     },
     
@@ -19,11 +19,11 @@ module.exports = {
         try{
             const user = await User.findOne({where: {id: req.params.id}});
             if(!user){
-                return res.status(400).json({error: 'User not found'})
+                return res.status(400).json({error:true, msg: 'Usuário não encontrado'})
             }
             return res.status(200).json(user);
         } catch(err){
-            res.status(400).send({error:err})
+            res.status(400).send({error:true, msg:err})
         }
     },
     
@@ -33,12 +33,12 @@ module.exports = {
         
             const {name, email, password} = req.body;
             if(!user){
-                return res.status(400).json({error: 'User not found'})
+                return res.status(400).json({error:true, msg: 'Usuário não encontrado'})
             }
             await user.update({name,email,password}, {where: req.params.id})
             return res.status(200).json(user)
         } catch(err){
-            res.status(400).send({error:err})
+            res.status(400).send({error:true, msg:err})
         }
     },
 
@@ -46,12 +46,12 @@ module.exports = {
         try{
             const user = await User.findOne({where: {id: req.params.id}});
             if(!user){
-                return res.status(400).json({error: 'User not found'})
+                return res.status(400).json({error:true, msg: 'Usuário não encontrado'})
             }
             await user.destroy()
             return res.status(200).json(user)
         } catch(err){
-            res.status(400).send({error:err})
+            res.status(400).send({error:true, msg:err})
         }
     },
 
@@ -60,17 +60,17 @@ module.exports = {
             const {name, email, password, passwordConfirmation} = req.body;
             const user = await User.findOne({where: {email: email}});
             if(user){
-                return res.status(400).json({error: 'Email already being used'})
+                return res.status(400).json({error:true, msg: 'Email ja está sendo usado'})
             }
 
             if(passwordConfirmation !== password){
-                return res.status(400).json({error: 'The passwords must be equal'})
+                return res.status(400).json({error:true, msg: 'As senhas precisam ser iguais'})
             }           
 
             const newUser = await User.create({name,email,password})  
             return res.status(200).json(newUser)
         } catch(err){
-            res.status(400).send({error:err.errors[0].message});
+            res.status(400).send({msg:err.errors});
         }
     },
 
@@ -79,20 +79,20 @@ module.exports = {
             const {email, password} = req.body;
             const user = await User.findOne({where: {email: email}});
             if(!user){
-                return res.status(400).json({error: 'User not found'})
+                return res.status(400).json({error:true, msg: 'Usuário não encontrado'})
             }
 
             const checkPassoword = await bcrypt.compare(password, user.password)
             if(!checkPassoword){
-                return res.status(400).json({error: 'Invalid password'})
+                return res.status(400).json({error:true, msg: 'Senha inválida'})
             }
             const secret = process.env.SECRET
             const token = jwt.sign({id: user.id}, secret)
 
-            res.status(200).json({msg: 'Autenticação realizada com sucesso', token})
+            res.status(200).json({msg: 'Autenticação sucedida', token})
 
         } catch(err){
-            res.status(400).send({error:err})
+            res.status(400).send({error:true, msg:err})
         }
     },
 }

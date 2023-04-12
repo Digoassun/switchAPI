@@ -4,7 +4,7 @@ module.exports = async (req, res, next) =>{
     const auth = req.headers.authorization;
     
     if(!auth){
-        return res.status(130).json({error:true, message:"Authentication token doesn't exist"})
+        return res.status(130).json({error:true, msg:"Token de autenticação não existe"})
     }
     
     // Spliting token "bearer --token--"
@@ -14,6 +14,6 @@ module.exports = async (req, res, next) =>{
         jwt.verify(token, process.env.SECRET)
         next()
     }catch(err){
-        return res.status(400).json({message:"Invalid token"})
+        return res.status(400).json({msg:"Token inválido"})
     }
 }

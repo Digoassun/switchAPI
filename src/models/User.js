@@ -8,21 +8,21 @@ class User extends Sequelize.Model{
                 name: {
                     type:Sequelize.STRING,
                     validate:{
-                        notEmpty:{msg:'Insert a name value'}
+                        notEmpty:{msg:'Insira um nome'}
                     }
                 },                
                 email: {
                     type: Sequelize.STRING,
                     validate:{
-                        notEmpty:{msg:'Insert a email value'},
-                        isEmail:{msg:'Insert a valid email'}
+                        notEmpty:{msg:'Insira um email'},
+                        isEmail:{msg:'Insira um email válido'}
                     }
                 },
                 password: {
                     type: Sequelize.STRING,
                     validate:{
-                        notEmpty:{msg:'Insert a email value'},
-                        len:{args: [4,16], msg:'Password must contain 4 to 16 characters'}
+                        notEmpty:{msg:'Insira uma senha'},
+                        len:{args: [4,16], msg:'Senha deve conter de 4 a 16 caracteres'}
                     }
                 },
             },
