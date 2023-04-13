@@ -1,5 +1,6 @@
 const User = require('../models/User')
 const jwt = require('jsonwebtoken');
+const bcrypt = require('bcrypt');
 
 module.exports = {
     async getAll(req,res){
@@ -70,7 +71,7 @@ module.exports = {
             const newUser = await User.create({name,email,password})  
             return res.status(200).json(newUser)
         } catch(err){
-            res.status(400).send({msg:err.errors});
+            res.status(400).send({error:true, msg:err.errors});
         }
     },
 
@@ -81,18 +82,19 @@ module.exports = {
             if(!user){
                 return res.status(400).json({error:true, msg: 'Usuário não encontrado'})
             }
-
+            
             const checkPassoword = await bcrypt.compare(password, user.password)
+            
             if(!checkPassoword){
                 return res.status(400).json({error:true, msg: 'Senha inválida'})
             }
             const secret = process.env.SECRET
             const token = jwt.sign({id: user.id}, secret)
-
-            res.status(200).json({msg: 'Autenticação sucedida', token})
-
+            
+            res.status(200).json({user, msg: 'Autenticação sucedida', token})
+            
         } catch(err){
-            res.status(400).send({error:true, msg:err})
+            res.status(400).send({error:true, msg:'Erro de login'})
         }
     },
 }
