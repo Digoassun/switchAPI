@@ -22,7 +22,7 @@ module.exports = {
             if(!user){
                 return res.status(400).json({error:true, msg: 'Usuário não encontrado'})
             }
-            return res.status(200).json(user);
+            return res.status(200).json({name: user.name,email: user.email, password: ''});
         } catch(err){
             res.status(400).send({error:true, msg:err})
         }
@@ -54,7 +54,7 @@ module.exports = {
             await user.update({name,email,password}, {where: req.params.id})
             return res.status(200).json({user, msg:'Usuário atualizado com sucesso'})
         } catch(err){
-            res.status(400).send({error:true, msg:err})
+            res.status(400).send({error:true, msg:err.errors})
         }
     },
 

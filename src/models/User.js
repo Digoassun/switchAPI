@@ -34,7 +34,7 @@ class User extends Sequelize.Model{
                     },
                     beforeUpdate: async(user,options) =>{
                         await hashHook(user, options)
-                    }
+                    },
                 }
             }
             );
