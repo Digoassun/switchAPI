@@ -27,6 +27,20 @@ module.exports = {
             res.status(400).send({error:true, msg:err})
         }
     },
+
+    async delete(req, res){
+        try{
+            const user = await User.findOne({where: {id: req.params.id}});
+            if(!user){
+                return res.status(400).json({error:true, msg: 'Usuário não encontrado'})
+            }
+            await user.destroy()
+            return res.status(200).json({user, msg:`Usuário ${user.name} deletado`})
+        } catch(err){
+            res.status(400).send({error:true, msg:err})
+        }
+    },
+    
     
     async update(req, res){
         try{
@@ -36,21 +50,9 @@ module.exports = {
             if(!user){
                 return res.status(400).json({error:true, msg: 'Usuário não encontrado'})
             }
-            await user.update({name,email,password}, {where: req.params.id})
-            return res.status(200).json(user)
-        } catch(err){
-            res.status(400).send({error:true, msg:err})
-        }
-    },
 
-    async delete(req, res){
-        try{
-            const user = await User.findOne({where: {id: req.params.id}});
-            if(!user){
-                return res.status(400).json({error:true, msg: 'Usuário não encontrado'})
-            }
-            await user.destroy()
-            return res.status(200).json(user)
+            await user.update({name,email,password}, {where: req.params.id})
+            return res.status(200).json({user, msg:'Usuário atualizado com sucesso'})
         } catch(err){
             res.status(400).send({error:true, msg:err})
         }
@@ -86,6 +88,7 @@ module.exports = {
             const checkPassoword = await bcrypt.compare(password, user.password)
             
             if(!checkPassoword){
+                console.log(password, user.password)
                 return res.status(400).json({error:true, msg: 'Senha inválida'})
             }
             const secret = process.env.SECRET

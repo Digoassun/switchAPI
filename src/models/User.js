@@ -30,17 +30,22 @@ class User extends Sequelize.Model{
                 sequelize,
                 hooks:{
                     beforeCreate: async (user, options) =>{
-                        if(user.password.length < 4 || user.password.length > 16){
-                            options.validate
-                        } else {
-                            const salt = await bcrypt.genSalt(12)
-                            const passwordHash = await bcrypt.hash(user.password, salt)
-                            user.password = passwordHash;
-                        }
+                        await hashHook(user, options)
+                    },
+                    beforeUpdate: async(user,options) =>{
+                        await hashHook(user, options)
                     }
                 }
             }
-        );
+            );
+            const hashHook = async(user,options) =>{
+                if(user.password.length > 4 || user.password.length < 16){
+                    const salt = await bcrypt.genSalt(12)
+                    const passwordHash = await bcrypt.hash(user.password, salt)
+                    user.password = passwordHash;
+                    return options.validate =false
+                }
+            }
         return this
     }
 }
