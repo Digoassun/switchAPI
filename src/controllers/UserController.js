@@ -4,29 +4,29 @@ const bcrypt = require('bcrypt');
 const multer = require('multer')
 const path = require('path')
 
-const storage = multer.diskStorage({
-    destination(req, file, cb){
-        cb(null,'src/images')
-    },
-    filename:(req,file,cb) =>{
-        cb(null, Date.now() + path.extname(file.originalname))
-    }
-})
+// const storage = multer.diskStorage({
+//     destination(req, file, cb){
+//         cb(null,'src/images')
+//     },
+//     filename:(req,file,cb) =>{
+//         cb(null, Date.now() + path.extname(file.originalname))
+//     }
+// })
 
-const upload = multer({
-    storage: storage,
-    limits:{fileSize:'9000000'},
-    fileFilter:(req,file,cb) =>{
-        const fileTypes = /jpeg|jpg|png|gif/
-        const mimeType = fileTypes.test(file.mimetype)
-        const extname = fileTypes.test(path.extname(file.originalname))
+// const upload = multer({
+//     storage: storage,
+//     limits:{fileSize:'9000000'},
+//     fileFilter:(req,file,cb) =>{
+//         const fileTypes = /jpeg|jpg|png|gif/
+//         const mimeType = fileTypes.test(file.mimetype)
+//         const extname = fileTypes.test(path.extname(file.originalname))
         
-        if(mimeType && extname){
-            return cb(null, true)
-        }
-        cb('Mande arquivos de imagem')
-    }
-}).single('image')
+//         if(mimeType && extname){
+//             return cb(null, true)
+//         }
+//         cb('Mande arquivos de imagem')
+//     }
+// }).single('image')
 
 module.exports = {
     async getAll(req,res){
@@ -86,8 +86,6 @@ module.exports = {
     async register(req, res){
         try{
             const {name, email, password, passwordConfirmation} = req.body;
-            const image = req.file.path;
-            console.log(image);
 
             const user = await User.findOne({where: {email: email}});
             if(user){
@@ -98,7 +96,7 @@ module.exports = {
                 return res.status(400).json({error:true, msg: 'As senhas precisam ser iguais'})
             }           
 
-            const newUser = await User.create({name,email,password,image})  
+            const newUser = await User.create({name,email,password})  
             return res.status(200).json(newUser)
         } catch(err){
             res.status(400).send({error:true, msg:err.errors});
@@ -128,5 +126,4 @@ module.exports = {
             res.status(400).send({error:true, msg:'Erro de login'})
         }
     },
-    upload
 }
