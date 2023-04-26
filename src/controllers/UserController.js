@@ -111,9 +111,9 @@ module.exports = {
         return res.status(400).json({ error: true, msg: "Usuário não encontrado" });
       }
 
-      const checkPassoword = await bcrypt.compare(password, user.password);
+      const checkPassword = await bcrypt.compare(password, user.password);
 
-      if (!checkPassoword) {
+      if (!checkPassword) {
         console.log(password, user.password);
         return res.status(400).json({ error: true, msg: "Senha inválida" });
       }
