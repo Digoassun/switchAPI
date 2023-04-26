@@ -2,31 +2,24 @@ const User = require("../models/User");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const multer = require("multer");
-const path = require("path");
+const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
+require("dotenv").config();
 
-// const storage = multer.diskStorage({
-//     destination(req, file, cb){
-//         cb(null,'src/images')
-//     },
-//     filename:(req,file,cb) =>{
-//         cb(null, Date.now() + path.extname(file.originalname))
-//     }
-// })
+const bucketName = process.env.BUCKET_NAME
+const bucketRegion = process.env.BUCKET_REGION
+const accessKey = process.env.ACCESS_KEY
+const secretAccessKey = process.env.SECRET_ACCESS_KEY
 
-// const upload = multer({
-//     storage: storage,
-//     limits:{fileSize:'9000000'},
-//     fileFilter:(req,file,cb) =>{
-//         const fileTypes = /jpeg|jpg|png|gif/
-//         const mimeType = fileTypes.test(file.mimetype)
-//         const extname = fileTypes.test(path.extname(file.originalname))
+const s3=new S3Client({
+  credentials:{
+    accessKeyId: accessKey,
+    secretAccessKey:secretAccessKey
+  },
+  region:bucketRegion
+})
 
-//         if(mimeType && extname){
-//             return cb(null, true)
-//         }
-//         cb('Mande arquivos de imagem')
-//     }
-// }).single('image')
+const storage = multer.memoryStorage()
+const upload = multer({storage:storage})
 
 module.exports = {
   async getAll(req, res) {
@@ -86,7 +79,14 @@ module.exports = {
   async register(req, res) {
     try {
       const { name, email, password, passwordConfirmation } = req.body;
-
+      const params = {
+        Bucket:bucketName,
+        Key:req.file.originalname,
+        Body:req.file.buffer,
+        ContentType:req.file.mimeType
+      }
+      const command = new PutObjectCommand(params)
+      await s3.send(command)
       const user = await User.findOne({ where: { email: email } });
       if (user) {
         return res.status(400).json({ error: true, msg: "Email ja está sendo usado" });
@@ -96,8 +96,8 @@ module.exports = {
         return res.status(400).json({ error: true, msg: "As senhas precisam ser iguais" });
       }
 
-      const newUser = await User.create({ name, email, password });
-      return res.status(200).json(newUser);
+      // const newUser = await User.create({ name, email, password });
+      // return res.status(200).json(newUser);
     } catch (err) {
       res.status(400).send({ error: true, msg: err.errors });
     }
@@ -125,4 +125,6 @@ module.exports = {
       res.status(400).send({ error: true, msg: "Erro de login" });
     }
   },
+
+  upload
 };

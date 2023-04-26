@@ -18,10 +18,10 @@ class User extends Sequelize.Model {
             isEmail: { msg: "Insira um email válido" },
           },
         },
-        // image:{
-        //     type: Sequelize.STRING,
-        //     allowNull: true
-        // },
+        image:{
+            type: Sequelize.STRING,
+            allowNull: true
+        },
         password: {
           type: Sequelize.STRING,
           validate: {
