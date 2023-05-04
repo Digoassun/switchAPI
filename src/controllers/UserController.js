@@ -2,7 +2,7 @@ const User = require("../models/User");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const multer = require("multer");
-const {S3Client, PutObjectCommand, GetObjectCommand} = require("@aws-sdk/client-s3");
+const {S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand} = require("@aws-sdk/client-s3");
 const {getSignedUrl} = require("@aws-sdk/s3-request-presigner");
 
 require("dotenv").config();
@@ -55,16 +55,18 @@ module.exports = {
             if (!user) {
                 return res.status(400).json({error: true, msg: "Usuário não encontrado"});
             }
-            // const getObjectParams = {
-            //     Bucket: bucketName,
-            //     Key: user.image,
-            // }
-            // if (getObjectParams.Key) {
-            //     const command = new GetObjectCommand(getObjectParams);
-            //     const url = await getSignedUrl(s3, command, {expiresIn: 3600});
-            //     user.image_url = url
-            // }
-            return res.status(200).json({name: user.name, email: user.email, password: ""});
+            if(user.image){
+                const getObjectParams = {
+                    Bucket: bucketName,
+                    Key: user.image,
+                }
+                if (getObjectParams.Key) {
+                    const command = new GetObjectCommand(getObjectParams);
+                    const url = await getSignedUrl(s3, command, {expiresIn: 3600});
+                    user.image_url = url
+                }
+            }
+            return res.status(200).json({name: user.name, email: user.email, password: "", image_url: user.image_url});
         } catch (err) {
             res.status(400).send({error: true, msg: err});
         }
@@ -76,6 +78,16 @@ module.exports = {
             if (!user) {
                 return res.status(400).json({error: true, msg: "Usuário não encontrado"});
             }
+
+            if (user.image) {
+                const params = {
+                    Bucket: bucketName,
+                    Key: user.image
+                }
+                const command = new DeleteObjectCommand(params);
+                await s3.send(command)
+            }
+
             await user.destroy();
             return res.status(200).json({user, msg: `Usuário ${user.name} deletado`});
         } catch (err) {
@@ -86,14 +98,37 @@ module.exports = {
     async update(req, res) {
         try {
             const user = await User.findOne({where: {id: req.params.id}});
-
             const {name, email, password} = req.body;
+            let imgName;
+
             if (!user) {
                 return res.status(400).json({error: true, msg: "Usuário não encontrado"});
             }
+            if (req.file) {
+                const hashImgName = await bcrypt.hash(req.file.originalname, 10)
 
-            await user.update({name, email, password}, {where: req.params.id});
-            return res.status(200).json({user, msg: "Usuário atualizado com sucesso"});
+                const putParams = {
+                    Bucket: bucketName,
+                    Key: hashImgName,
+                    Body: req.file.buffer,
+                    ContentType: req.file.mimetype
+                }
+                imgName = putParams.Key;
+                if (user.image) {
+                    const deleteParams = {
+                        Bucket: bucketName,
+                        Key: user.image
+                    }
+                    const deleteCommand = new DeleteObjectCommand(deleteParams);
+                    await s3.send(deleteCommand)
+                }
+                const putCommand = new PutObjectCommand(putParams)
+
+                await s3.send(putCommand)
+            }
+
+            await user.update({name, email, password, image: imgName}, {where: req.params.id});
+            return res.status(200).json({user, msg: `Usuário ${user.name} atualizado com sucesso`});
         } catch (err) {
             res.status(400).send({error: true, msg: err.errors});
         }
@@ -102,13 +137,7 @@ module.exports = {
     async register(req, res) {
         try {
             const {name, email, password, passwordConfirmation} = req.body;
-
-            const params = {
-                Bucket: bucketName,
-                Key: req.file.originalname,
-                Body: req.file.buffer,
-                ContentType: req.file.mimetype
-            }
+            let img = null;
 
             const user = await User.findOne({where: {email: email}});
             if (user) {
@@ -118,10 +147,22 @@ module.exports = {
             if (passwordConfirmation !== password) {
                 return res.status(400).json({error: true, msg: "As senhas precisam ser iguais"});
             }
-            const command = new PutObjectCommand(params)
-            await s3.send(command)
 
-            const newUser = await User.create({name, email, password, image: params.Key});
+            if (req.file) {
+                const hashImgName = await bcrypt.hash(req.file.originalname, 10)
+
+                const params = {
+                    Bucket: bucketName,
+                    Key: hashImgName,
+                    Body: req.file.buffer,
+                    ContentType: req.file.mimetype
+                }
+                img = params
+                const command = new PutObjectCommand(img)
+                await s3.send(command)
+            }
+
+            const newUser = await User.create({name, email, password, image: img?.Key});
             return res.status(200).json(newUser);
         } catch (err) {
             res.status(400).send({error: true, msg: err.errors});
@@ -151,8 +192,8 @@ module.exports = {
         }
     },
 
-    async urlCreate(req,res){
-        try{
+    async urlCreate(req, res) {
+        try {
             let {originalname} = req.file
             const getObjectParams = {
                 Bucket: bucketName,

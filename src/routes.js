@@ -10,7 +10,7 @@ routes.get("/users/:id", authMiddleware, UserController.getOne);
 routes.post("/register", upload,UserController.register);
 routes.post("/url-create",upload,UserController.urlCreate);
 routes.post("/auth/login", UserController.login);
-routes.put("/users/:id", authMiddleware, UserController.update);
+routes.put("/users/:id",upload, authMiddleware, UserController.update);
 routes.delete("/users/:id", authMiddleware, UserController.delete);
 
 module.exports = routes;
