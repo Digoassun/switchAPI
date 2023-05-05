@@ -55,15 +55,14 @@ module.exports = {
             if (!user) {
                 return res.status(400).json({error: true, msg: "Usuário não encontrado"});
             }
-            if(user.image){
+            if (user.image) {
                 const getObjectParams = {
                     Bucket: bucketName,
                     Key: user.image,
                 }
                 if (getObjectParams.Key) {
                     const command = new GetObjectCommand(getObjectParams);
-                    const url = await getSignedUrl(s3, command, {expiresIn: 3600});
-                    user.image_url = url
+                    user.image_url = await getSignedUrl(s3, command, {expiresIn: 3600})
                 }
             }
             return res.status(200).json({name: user.name, email: user.email, password: "", image_url: user.image_url});
@@ -151,13 +150,12 @@ module.exports = {
             if (req.file) {
                 const hashImgName = await bcrypt.hash(req.file.originalname, 10)
 
-                const params = {
+                img = {
                     Bucket: bucketName,
                     Key: hashImgName,
                     Body: req.file.buffer,
                     ContentType: req.file.mimetype
                 }
-                img = params
                 const command = new PutObjectCommand(img)
                 await s3.send(command)
             }
@@ -194,16 +192,44 @@ module.exports = {
 
     async urlCreate(req, res) {
         try {
-            let {originalname} = req.file
+            const originalName = req.file.originalname;
+
+            const putParams = {
+                Bucket: bucketName,
+                Key: originalName,
+                Body: req.file.buffer,
+                ContentType: req.file.mimetype
+            }
+            const putCommand = new PutObjectCommand(putParams)
+            await s3.send(putCommand)
+
             const getObjectParams = {
                 Bucket: bucketName,
-                Key: originalname,
+                Key: putParams.Key,
             }
+
             const command = new GetObjectCommand(getObjectParams);
             const url = await getSignedUrl(s3, command, {expiresIn: 3600});
             return res.status(200).json(url);
+
         } catch (err) {
             res.status(400).send({error: true, msg: 'Selecione uma imagem válida'});
+        }
+    },
+
+    async urlDelete(req, res) {
+        try {
+            const deleteParams = {
+                Bucket: bucketName,
+                Key: req.params.file,
+            }
+
+            const deleteCommand = new DeleteObjectCommand(deleteParams);
+            await s3.send(deleteCommand)
+            return res.status(200).json('Imagem deletada');
+
+        } catch (err) {
+            res.status(400).send({error: true, msg: err});
         }
     },
 
