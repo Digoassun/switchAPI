@@ -1,11 +1,25 @@
 const express = require("express");
 const routes = require("./routes");
 const cors = require("cors");
+const https = require('https');
+const fs = require('fs');
 require("./database");
 require("dotenv").config();
 
 const app = express();
-app.use(cors());
-app.listen(3000);
+app.use(cors())
+
+// Prod server
+const server = https.createServer({
+    key: fs.readFileSync('/home/ubuntu/app/src/privkey.pem'),
+    cert: fs.readFileSync('/home/ubuntu/app/src/fullchain.pem'),
+    requestCert: false,
+    rejectUnauthorized: false
+}, app);
+server.listen(3000, ()=>console.log('aberto'));
+
+// Local server
+// app.listen(3000,()=>console.log('oi'))
+
 app.use(express.json());
 app.use(routes);

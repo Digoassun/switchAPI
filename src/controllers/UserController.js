@@ -135,7 +135,7 @@ module.exports = {
 
     async register(req, res) {
         try {
-            const {name, email, password, passwordConfirmation} = req.body;
+            const {name, email, password, passwordConfirmation, role} = req.body;
             let img = null;
 
             const user = await User.findOne({where: {email: email}});
@@ -160,7 +160,7 @@ module.exports = {
                 await s3.send(command)
             }
 
-            const newUser = await User.create({name, email, password, image: img?.Key});
+            const newUser = await User.create({name, email, password, role, image: img?.Key});
             return res.status(200).json(newUser);
         } catch (err) {
             res.status(400).send({error: true, msg: err.errors});
