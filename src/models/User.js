@@ -30,6 +30,14 @@ class User extends Sequelize.Model {
                     type: Sequelize.STRING,
                     allowNull: true
                 },
+                phone: {
+                    type: Sequelize.STRING,
+                    allowNull: true
+                },
+                document: {
+                    type: Sequelize.STRING,
+                    allowNull: true
+                },
                 password: {
                     type: Sequelize.STRING,
                     validate: {

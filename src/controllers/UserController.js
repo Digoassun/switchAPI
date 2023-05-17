@@ -65,7 +65,8 @@ module.exports = {
                     user.image_url = await getSignedUrl(s3, command, {expiresIn: 3600})
                 }
             }
-            return res.status(200).json({name: user.name, email: user.email, password: "", image_url: user.image_url});
+
+            return res.status(200).json({name: user.name, email: user.email, password: "", image_url: user.image_url, phone: (user.phone? user.phone :''), document: (user.document? user.document :'')});
         } catch (err) {
             res.status(400).send({error: true, msg: err});
         }
@@ -97,7 +98,7 @@ module.exports = {
     async update(req, res) {
         try {
             const user = await User.findOne({where: {id: req.params.id}});
-            const {name, email, password} = req.body;
+            const {name, email, password,phone, document, role,} = req.body;
             let imgName;
 
             if (!user) {
@@ -126,7 +127,7 @@ module.exports = {
                 await s3.send(putCommand)
             }
 
-            await user.update({name, email, password, image: imgName}, {where: req.params.id});
+            await user.update({name, email, password,phone, document, role, image: imgName}, {where: req.params.id});
             return res.status(200).json({user, msg: `Usuário ${user.name} atualizado com sucesso`});
         } catch (err) {
             res.status(400).send({error: true, msg: err.errors});
@@ -135,7 +136,7 @@ module.exports = {
 
     async register(req, res) {
         try {
-            const {name, email, password, passwordConfirmation, role} = req.body;
+            const {name, email, password, passwordConfirmation, role, phone, document} = req.body;
             let img = null;
 
             const user = await User.findOne({where: {email: email}});
@@ -160,7 +161,7 @@ module.exports = {
                 await s3.send(command)
             }
 
-            const newUser = await User.create({name, email, password, role, image: img?.Key});
+            const newUser = await User.create({name, email, password, role, phone, document, image: img?.Key});
             return res.status(200).json(newUser);
         } catch (err) {
             res.status(400).send({error: true, msg: err.errors});
