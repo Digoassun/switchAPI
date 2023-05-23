@@ -4,6 +4,7 @@ const bcrypt = require("bcrypt");
 const multer = require("multer");
 const {S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand} = require("@aws-sdk/client-s3");
 const {getSignedUrl} = require("@aws-sdk/s3-request-presigner");
+const cep = require('cep-promise')
 
 require("dotenv").config();
 
@@ -25,6 +26,7 @@ const upload = multer({storage: storage}).single('image')
 
 module.exports = {
     async getAll(req, res) {
+       cep(20231000).then(console.log)
         try {
             const users = await User.findAll();
 

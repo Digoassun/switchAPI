@@ -1,5 +1,6 @@
 const Sequelize = require("sequelize");
 const bcrypt = require("bcrypt");
+const Address = require("./Address");
 
 class User extends Sequelize.Model {
     static init(sequelize) {
@@ -66,6 +67,7 @@ class User extends Sequelize.Model {
                 return (options.validate = false);
             }
         };
+        User.hasMany(Address, {foreignKey:'user_id', as:'addresses'})
         return this;
     }
 }
