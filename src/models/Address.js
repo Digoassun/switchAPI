@@ -33,7 +33,12 @@ class Address extends Sequelize.Model {
                 sequelize,
             }
         );
-        Address.belongsTo(User,{foreignKey:'user_id', as:'user'})
+
+        return this;
+
+    }
+    static associate(models){
+        Address.belongsTo(models.User,{foreignKey:'user_id', as:'user'})
     }
 }
 

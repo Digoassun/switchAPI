@@ -26,9 +26,12 @@ const upload = multer({storage: storage}).single('image')
 
 module.exports = {
     async getAll(req, res) {
-       cep(20231000).then(console.log)
         try {
-            const users = await User.findAll();
+            const users = await User.findAll({
+            include:{
+                association:'addresses'
+            }
+        });
 
             if (!users) {
                 return res.status(400).json({error: true, msg: "Não existem usuários cadastrados"});
@@ -53,7 +56,7 @@ module.exports = {
 
     async getOne(req, res) {
         try {
-            const user = await User.findOne({where: {id: req.params.id}});
+            const user = await User.findByPk(req.params.id, {include: { association: 'addresses'}});
             if (!user) {
                 return res.status(400).json({error: true, msg: "Usuário não encontrado"});
             }
@@ -68,7 +71,7 @@ module.exports = {
                 }
             }
 
-            return res.status(200).json({name: user.name, email: user.email, password: "", image_url: user.image_url, phone: (user.phone? user.phone :''), document: (user.document? user.document :'')});
+            return res.status(200).json({name: user.name, email: user.email, password: "",addresses:user.addresses, image_url: user.image_url, phone: (user.phone? user.phone :''), document: (user.document? user.document :'')});
         } catch (err) {
             res.status(400).send({error: true, msg: err});
         }

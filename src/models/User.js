@@ -67,8 +67,11 @@ class User extends Sequelize.Model {
                 return (options.validate = false);
             }
         };
-        User.hasMany(Address, {foreignKey:'user_id', as:'addresses'})
         return this;
+    }
+    static associate(models){
+        User.hasMany(models.Address, {foreignKey:'user_id', as:'addresses'})
+
     }
 }
 

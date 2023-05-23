@@ -18,12 +18,15 @@ routes.delete("/users/:id", authMiddleware, UserController.delete);
 routes.post("/url-create",upload,UserController.urlCreate);
 routes.delete("/url-delete/:file", upload, UserController.urlDelete);
 
-//Adresses routes
+//Addresses routes
+
 routes.get("/addresses", AddressController.getAll);
-routes.get("/addresses/:id", AddressController.getOne);
+routes.put("/addresses/:id", AddressController.update);
+routes.delete("/addresses/:id", AddressController.delete);
+
+routes.get("/users/:user_id/addresses", AddressController.getOne);
 routes.post("/users/:user_id/addresses", AddressController.register);
+
 routes.post("/build-cep-body", AddressController.buildCepBody);
-routes.put("/users/:user_id/addresses", AddressController.update);
-routes.delete("/users/:user_id/addresses", AddressController.delete);
 
 module.exports = routes;
