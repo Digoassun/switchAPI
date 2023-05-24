@@ -1,6 +1,5 @@
 const Sequelize = require("sequelize");
 const bcrypt = require("bcrypt");
-const Address = require("./Address");
 
 class User extends Sequelize.Model {
     static init(sequelize) {

@@ -1,6 +1,4 @@
 const Sequelize = require("sequelize");
-const bcrypt = require("bcrypt");
-const User = require("./User");
 
 class Address extends Sequelize.Model {
     static init(sequelize) {
@@ -11,18 +9,6 @@ class Address extends Sequelize.Model {
                     validate: {
                         notEmpty: {msg: "Insira um cep"},
                     },
-                },
-                state: {
-                    type: Sequelize.STRING,
-                    allowNull: false
-                },
-                city: {
-                    type: Sequelize.STRING,
-                    allowNull: false
-                },
-                neighborhood: {
-                    type: Sequelize.STRING,
-                    allowNull: false
                 },
                 street: {
                     type: Sequelize.STRING,
@@ -39,6 +25,7 @@ class Address extends Sequelize.Model {
     }
     static associate(models){
         Address.belongsTo(models.User,{foreignKey:'user_id', as:'user'})
+        Address.belongsTo(models.Neighborhood,{foreignKey:'neighborhood_id', as:'neighborhood'})
     }
 }
 

@@ -1,6 +1,9 @@
 const Address = require("../models/Address");
 const cep = require('cep-promise')
 const User = require("../models/User");
+const Neighborhood = require("../models/Neighborhood");
+const City = require("../models/City");
+const State = require("../models/State");
 
 module.exports = {
     async buildCepBody(req, res){
@@ -70,10 +73,23 @@ module.exports = {
             const {zipcode, state, city, neighborhood, street} = req.body;
 
             const user = await User.findOne({where: {id: req.params.user_id}});
+            const stateExist = await State.findOne({where: {state: state}});
+            const cityExist = await City.findOne({where: {city: city}});
+            const neighborhoodExist = await Neighborhood.findOne({where: {neighborhood: neighborhood}});
             if (!user) {
                 return res.status(400).json({error: true, msg: "Usuário não existe"});
             }
-            const newAddress = await Address.create({zipcode, state, city, neighborhood, street,user_id});
+            if (!stateExist){
+                const newState = await State.create({state});
+            }
+            if (!cityExist){
+                const cityExist = await City.create({city});
+            }
+            if (!neighborhoodExist){
+                const neighborhoodExist = await Neighborhood.create({neighborhood});
+            }
+
+            const newAddress = await Address.create({zipcode, street,user_id});
             return res.status(200).json(newAddress);
         } catch (err) {
             res.status(400).send({error: true, msg: err});

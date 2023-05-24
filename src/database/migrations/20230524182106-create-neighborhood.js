@@ -3,32 +3,21 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    return queryInterface.createTable("addresses", {
+    return queryInterface.createTable("neighborhoods", {
       id: {
         type: Sequelize.INTEGER,
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
       },
-      user_id: {
+      city_id: {
         type: Sequelize.INTEGER,
         allowNull: false,
-        references: {model: 'users', key: 'id'},
+        references: {model: 'cities', key: 'id'},
         onUpdate:'CASCADE',
         onDelete:'CASCADE',
       },
-      neighborhood_id: {
-        type: Sequelize.INTEGER,
-        allowNull: false,
-        references: {model: 'neighborhoods', key: 'id'},
-        onUpdate:'CASCADE',
-        onDelete:'CASCADE',
-      },
-      zipcode: {
-        type: Sequelize.STRING,
-        allowNull: false,
-      },
-      street: {
+      neighborhood: {
         type: Sequelize.STRING,
         allowNull: false,
       },
@@ -44,6 +33,6 @@ module.exports = {
   },
 
   async down(queryInterface, Sequelize) {
-    return queryInterface.dropTable("addresses");
+    return queryInterface.dropTable("neighborhoods");
   },
 };
