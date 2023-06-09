@@ -4,7 +4,6 @@ const bcrypt = require("bcrypt");
 const multer = require("multer");
 const {S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand} = require("@aws-sdk/client-s3");
 const {getSignedUrl} = require("@aws-sdk/s3-request-presigner");
-const cep = require('cep-promise')
 
 require("dotenv").config();
 
@@ -27,11 +26,7 @@ const upload = multer({storage: storage}).single('image')
 module.exports = {
     async getAll(req, res) {
         try {
-            const users = await User.findAll({
-            include:{
-                association:'addresses'
-            }
-        });
+            const users = await User.findAll();
 
             if (!users) {
                 return res.status(400).json({error: true, msg: "Não existem usuários cadastrados"});
@@ -43,8 +38,7 @@ module.exports = {
                 }
                 if (getObjectParams.Key) {
                     const command = new GetObjectCommand(getObjectParams);
-                    const url = await getSignedUrl(s3, command, {expiresIn: 3600});
-                    user.image_url = url
+                    user.image_url = await getSignedUrl(s3, command, {expiresIn: 3600})
                 }
             }
 
@@ -56,7 +50,20 @@ module.exports = {
 
     async getOne(req, res) {
         try {
-            const user = await User.findByPk(req.params.id, {include: { association: 'addresses'}});
+            const user = await User.findByPk(req.params.id, {
+                include: {
+                    association: 'addresses', attributes: ['id', 'zipcode', 'street'],
+                    include: {
+                        association: 'neighborhood', attributes: ['id', 'neighborhood'],
+                        include: {
+                            association: 'city', attributes: ['id', 'city'],
+                            include: {
+                                association: 'state', attributes: ['id', 'state'],
+                            }
+                        }
+                    }
+                }
+            });
             if (!user) {
                 return res.status(400).json({error: true, msg: "Usuário não encontrado"});
             }
@@ -71,7 +78,15 @@ module.exports = {
                 }
             }
 
-            return res.status(200).json({name: user.name, email: user.email, password: "",addresses:user.addresses, image_url: user.image_url, phone: (user.phone? user.phone :''), document: (user.document? user.document :'')});
+            return res.status(200).json({
+                name: user.name,
+                email: user.email,
+                password: "",
+                addresses: user.addresses,
+                image_url: user.image_url,
+                phone: (user.phone ? user.phone : ''),
+                document: (user.document ? user.document : '')
+            });
         } catch (err) {
             res.status(400).send({error: true, msg: err});
         }
@@ -103,7 +118,7 @@ module.exports = {
     async update(req, res) {
         try {
             const user = await User.findOne({where: {id: req.params.id}});
-            const {name, email, password,phone, document, role,} = req.body;
+            const {name, email, password, phone, document, role,} = req.body;
             let imgName;
 
             if (!user) {
@@ -132,7 +147,7 @@ module.exports = {
                 await s3.send(putCommand)
             }
 
-            await user.update({name, email, password,phone, document, role, image: imgName}, {where: req.params.id});
+            await user.update({name, email, password, phone, document, role, image: imgName}, {where: req.params.id});
             return res.status(200).json({user, msg: `Usuário ${user.name} atualizado com sucesso`});
         } catch (err) {
             res.status(400).send({error: true, msg: err.errors});

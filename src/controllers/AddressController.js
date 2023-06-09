@@ -6,18 +6,57 @@ const City = require("../models/City");
 const State = require("../models/State");
 
 module.exports = {
-    async buildCepBody(req, res){
-        try{
+    async getAllStates(req, res) {
+        try {
+            const state = await State.findAll();
+            return res.json(state);
+        } catch (err) {
+            res.status(400).send({error: true, msg: err});
+        }
+    },
+
+    async getAllCities(req, res) {
+        try {
+            const city = await City.findAll();
+            return res.json(city);
+        } catch (err) {
+            res.status(400).send({error: true, msg: err});
+        }
+    },
+
+    async getAllNeighborhoods(req, res) {
+        try {
+            const neighborhood = await Neighborhood.findAll();
+            return res.json(neighborhood);
+        } catch (err) {
+            res.status(400).send({error: true, msg: err});
+        }
+    },
+
+
+    async buildCepBody(req, res) {
+        try {
             const address = await cep(req.body.cep)
             return res.status(200).json(address);
-        }catch(err){
+        } catch (err) {
             res.status(400).send({error: true, msg: err});
         }
     },
 
     async getAll(req, res) {
+
         try {
-            const addresses = await Address.findAll();
+            const addresses = await Address.findAll({
+                include: {
+                    association: 'neighborhood', attributes: ['id', 'neighborhood'],
+                    include: {
+                        association: 'city', attributes: ['id', 'city'],
+                        include: {
+                            association: 'state', attributes: ['id', 'state'],
+                        }
+                    }
+                }
+            });
 
             return res.json(addresses);
         } catch (err) {
@@ -26,12 +65,20 @@ module.exports = {
     },
 
     async getOne(req, res) {
-       try{
-           const{user_id} = req.params
-           const user = await User.findByPk(user_id, {
-               include:{association:'addresses'}
-           })
-           return res.json(user?.addresses)
+        try {
+            const address = await Address.findByPk(req.params.id, {
+                include: {
+                    association: 'neighborhood', attributes: ['id', 'neighborhood'],
+                    include: {
+                        association: 'city', attributes: ['id', 'city'],
+                        include: {
+                            association: 'state', attributes: ['id', 'state'],
+                        }
+                    }
+                }
+            })
+            console.log(address)
+            return res.status(200).json(address)
         } catch (err) {
             res.status(400).send({error: true, msg: err});
         }
@@ -55,12 +102,23 @@ module.exports = {
         try {
             const address = await Address.findByPk(req.params.id);
             const {zipcode, state, city, neighborhood, street} = req.body;
-
+            console.log(address)
             if (!address) {
                 return res.status(400).json({error: true, msg: "Endereço não encontrado"});
             }
+            const [stateExist] = await State.findOrCreate({where: {state: state}});
+            const [cityExist] = await City.findOrCreate({where: {city: city, state_id: stateExist.dataValues.id}});
+            const [neighborhoodExist] = await Neighborhood.findOrCreate({
+                where: {
+                    neighborhood: neighborhood, city_id: cityExist.dataValues.id
+                }
+            });
 
-            await address.update({zipcode, state, city, neighborhood, street}, {where: req.params.id});
+            await address.update({
+                zipcode,
+                street,
+                neighborhood_id: neighborhoodExist.dataValues.id
+            }, {where: req.params.id});
             return res.status(200).json({address, msg: `Endereço da rua ${address.street} atualizado`});
         } catch (err) {
             res.status(400).send({error: true, msg: err.errors});
@@ -73,26 +131,29 @@ module.exports = {
             const {zipcode, state, city, neighborhood, street} = req.body;
 
             const user = await User.findOne({where: {id: req.params.user_id}});
-            const stateExist = await State.findOne({where: {state: state}});
-            const cityExist = await City.findOne({where: {city: city}});
-            const neighborhoodExist = await Neighborhood.findOne({where: {neighborhood: neighborhood}});
             if (!user) {
                 return res.status(400).json({error: true, msg: "Usuário não existe"});
             }
-            if (!stateExist){
-                const newState = await State.create({state});
-            }
-            if (!cityExist){
-                const cityExist = await City.create({city});
-            }
-            if (!neighborhoodExist){
-                const neighborhoodExist = await Neighborhood.create({neighborhood});
-            }
+            const [stateExist] = await State.findOrCreate({where: {state: state}});
+            const [cityExist] = await City.findOrCreate({where: {city: city, state_id: stateExist.dataValues.id}});
+            const [neighborhoodExist] = await Neighborhood.findOrCreate({
+                where: {
+                    neighborhood: neighborhood,
+                    city_id: cityExist.dataValues.id
+                }
+            });
 
-            const newAddress = await Address.create({zipcode, street,user_id});
+            const newAddress = await Address.create({
+                zipcode,
+                street,
+                neighborhood_id: neighborhoodExist.dataValues.id,
+                user_id
+            });
             return res.status(200).json(newAddress);
         } catch (err) {
             res.status(400).send({error: true, msg: err});
         }
     },
+
+
 };

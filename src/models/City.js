@@ -18,8 +18,8 @@ class City extends Sequelize.Model {
 
     }
     static associate(models){
-        City.hasMany(models.Neighborhood,{foreignKey:'neighborhood_id', as:'neighborhoods'})
-        City.belongsTo(models.State,{foreignKey:'city_id', as:'cities'})
+        City.hasMany(models.Neighborhood,{foreignKey:'city_id', as:'neighborhoods'})
+        City.belongsTo(models.State,{foreignKey:'state_id', as:'state'})
     }
 }
 

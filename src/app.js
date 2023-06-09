@@ -7,15 +7,6 @@ require("dotenv").config();
 const app = express();
 app.use(cors())
 
-// Prod server
-// const server = https.createServer({
-//     key: fs.readFileSync('/home/ubuntu/app/src/privkey.pem'),
-//     cert: fs.readFileSync('/home/ubuntu/app/src/fullchain.pem'),
-//     requestCert: false,
-//     rejectUnauthorized: false
-// }, app);
-// server.listen(3000, ()=>console.log('aberto'));
-
 // Local server
 app.listen(3000,()=>console.log('aberto'))
 

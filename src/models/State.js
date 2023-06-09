@@ -18,7 +18,7 @@ class State extends Sequelize.Model {
 
     }
     static associate(models){
-        State.hasMany(models.City,{foreignKey:'city_id', as:'cities'})
+        State.hasMany(models.City,{foreignKey:'state_id', as:'cities'})
     }
 }
 
