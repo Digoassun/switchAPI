@@ -64,6 +64,32 @@ module.exports = {
         }
     },
 
+    async getAllFormUser(req,res){
+        try {
+            const user = await User.findByPk(req.params.id, {
+                include: {
+                    association: 'addresses', attributes: ['id', 'zipcode', 'street',"user_id"],
+                    include: {
+                        association: 'neighborhood', attributes: ['id', 'neighborhood'],
+                        include: {
+                            association: 'city', attributes: ['id', 'city'],
+                            include: {
+                                association: 'state', attributes: ['id', 'state'],
+                            }
+                        }
+                    }
+                }
+            });
+            if (!user) {
+                return res.status(400).json({error: true, msg: "Usuário não encontrado"});
+            }
+
+            return res.status(200).json({addresses: user.addresses});
+        } catch (err) {
+            res.status(400).send({error: true, msg: err});
+        }
+    },
+
     async getOne(req, res) {
         try {
             const address = await Address.findByPk(req.params.id, {
@@ -129,6 +155,7 @@ module.exports = {
         try {
             const {user_id} = req.params
             const {zipcode, state, city, neighborhood, street} = req.body;
+            console.log(req.body)
 
             const user = await User.findOne({where: {id: req.params.user_id}});
             if (!user) {

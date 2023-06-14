@@ -15,21 +15,23 @@ routes.get("/users/:id", authMiddleware, UserController.getOne);
 routes.put("/users/:id",upload, authMiddleware, UserController.update);
 routes.delete("/users/:id", authMiddleware, UserController.delete);
 
+//Images routes
 routes.post("/url-create",upload,UserController.urlCreate);
 routes.delete("/url-delete/:file", upload, UserController.urlDelete);
 
 //Addresses routes
-routes.get("/addresses", AddressController.getAll);
-routes.put("/addresses/:id", AddressController.update);
-routes.delete("/addresses/:id", AddressController.delete);
+routes.get("/addresses",authMiddleware, AddressController.getAll);
+routes.get("/addresses/:id",authMiddleware, AddressController.getOne);
+routes.put("/addresses/:id",authMiddleware, AddressController.update);
+routes.delete("/addresses/:id",authMiddleware, AddressController.delete);
 
-routes.get("/addresses/:id", AddressController.getOne);
-routes.post("/users/:user_id/addresses", AddressController.register);
+routes.get("/user/:id/addresses",authMiddleware, AddressController.getAllFormUser);
+routes.post("/user/:user_id/addresses",authMiddleware, AddressController.register);
 
-routes.post("/build-cep-body", AddressController.buildCepBody);
+routes.post("/build-cep-body",authMiddleware, AddressController.buildCepBody);
 
-routes.get("/states", AddressController.getAllStates);
-routes.get("/cities", AddressController.getAllCities);
-routes.get("/neighborhoods", AddressController.getAllNeighborhoods);
+routes.get("/states",authMiddleware, AddressController.getAllStates);
+routes.get("/cities",authMiddleware, AddressController.getAllCities);
+routes.get("/neighborhoods",authMiddleware, AddressController.getAllNeighborhoods);
 
 module.exports = routes;
