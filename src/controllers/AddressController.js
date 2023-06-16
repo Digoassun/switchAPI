@@ -9,7 +9,7 @@ module.exports = {
     async getAllStates(req, res) {
         try {
             const state = await State.findAll();
-            return res.json(state);
+            return res.status(200).json(state);
         } catch (err) {
             res.status(400).send({error: true, msg: err});
         }
@@ -18,7 +18,7 @@ module.exports = {
     async getAllCities(req, res) {
         try {
             const city = await City.findAll();
-            return res.json(city);
+            return res.status(200).json(city);
         } catch (err) {
             res.status(400).send({error: true, msg: err});
         }
@@ -27,19 +27,18 @@ module.exports = {
     async getAllNeighborhoods(req, res) {
         try {
             const neighborhood = await Neighborhood.findAll();
-            return res.json(neighborhood);
+            return res.status(200).json(neighborhood);
         } catch (err) {
             res.status(400).send({error: true, msg: err});
         }
     },
-
 
     async buildCepBody(req, res) {
         try {
             const address = await cep(req.body.cep)
             return res.status(200).json(address);
         } catch (err) {
-            res.status(400).send({error: true, msg: err});
+            res.status(400).send({error: true, msg: err.errors[0].message});
         }
     },
 
@@ -58,7 +57,7 @@ module.exports = {
                 }
             });
 
-            return res.json(addresses);
+            return res.status(200).json(addresses);
         } catch (err) {
             res.status(400).send({error: true, msg: err});
         }
@@ -153,9 +152,9 @@ module.exports = {
 
     async register(req, res) {
         try {
-            const {user_id} = req.params
-            const {zipcode, state, city, neighborhood, street} = req.body;
+            const {user_id} = req.params;
             console.log(req.body)
+            const {zipcode, state, city, neighborhood, street} = req.body;
 
             const user = await User.findOne({where: {id: req.params.user_id}});
             if (!user) {

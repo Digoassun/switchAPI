@@ -2,22 +2,17 @@ const Router = require("express");
 const UserController = require("./controllers/UserController");
 const AddressController = require("./controllers/AddressController");
 const authMiddleware = require("./middleware/authMiddleware");
-const {upload} = require("./controllers/UserController");
 
 const routes = new Router();
 
 //Users routes
-routes.post("/register", upload,UserController.register);
+routes.post("/register", UserController.register);
 routes.post("/auth/login", UserController.login);
 
 routes.get("/users", authMiddleware, UserController.getAll);
 routes.get("/users/:id", authMiddleware, UserController.getOne);
-routes.put("/users/:id",upload, authMiddleware, UserController.update);
+routes.put("/users/:id", authMiddleware, UserController.update);
 routes.delete("/users/:id", authMiddleware, UserController.delete);
-
-//Images routes
-routes.post("/url-create",upload,UserController.urlCreate);
-routes.delete("/url-delete/:file", upload, UserController.urlDelete);
 
 //Addresses routes
 routes.get("/addresses",authMiddleware, AddressController.getAll);
