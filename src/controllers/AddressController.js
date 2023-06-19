@@ -63,11 +63,11 @@ module.exports = {
         }
     },
 
-    async getAllFormUser(req,res){
+    async getAllFormUser(req, res) {
         try {
             const user = await User.findByPk(req.params.id, {
                 include: {
-                    association: 'addresses', attributes: ['id', 'zipcode', 'street',"user_id"],
+                    association: 'addresses', attributes: ['id', 'zipcode', 'street', "user_id","number", "complement"],
                     include: {
                         association: 'neighborhood', attributes: ['id', 'neighborhood'],
                         include: {
@@ -126,7 +126,7 @@ module.exports = {
     async update(req, res) {
         try {
             const address = await Address.findByPk(req.params.id);
-            const {zipcode, state, city, neighborhood, street} = req.body;
+            const {zipcode, state, city, neighborhood, street, number, complement} = req.body;
             console.log(address)
             if (!address) {
                 return res.status(400).json({error: true, msg: "Endereço não encontrado"});
@@ -142,7 +142,9 @@ module.exports = {
             await address.update({
                 zipcode,
                 street,
-                neighborhood_id: neighborhoodExist.dataValues.id
+                neighborhood_id: neighborhoodExist.dataValues.id,
+                number,
+                complement
             }, {where: req.params.id});
             return res.status(200).json({address, msg: `Endereço da rua ${address.street} atualizado`});
         } catch (err) {
@@ -154,7 +156,7 @@ module.exports = {
         try {
             const {user_id} = req.params;
             console.log(req.body)
-            const {zipcode, state, city, neighborhood, street} = req.body;
+            const {zipcode, state, city, neighborhood, street, number, complement} = req.body;
 
             const user = await User.findOne({where: {id: req.params.user_id}});
             if (!user) {
@@ -173,7 +175,9 @@ module.exports = {
                 zipcode,
                 street,
                 neighborhood_id: neighborhoodExist.dataValues.id,
-                user_id
+                user_id,
+                number,
+                complement
             });
             return res.status(200).json(newAddress);
         } catch (err) {

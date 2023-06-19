@@ -12,7 +12,19 @@ class Address extends Sequelize.Model {
                 },
                 street: {
                     type: Sequelize.STRING,
-                    allowNull: false
+                    validate: {
+                        notEmpty: {msg: "Insira uma rua"},
+                    },
+                },
+                number: {
+                    type: Sequelize.STRING,
+                    validate: {
+                        notEmpty: {msg: "Insira um número"},
+                    },
+                },
+                complement: {
+                    type: Sequelize.STRING,
+                    allowNull: true
                 },
             },
             {

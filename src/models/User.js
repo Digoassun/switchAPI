@@ -61,8 +61,7 @@ class User extends Sequelize.Model {
         const hashHook = async (user, options) => {
             if (user.password.length > 4 || user.password.length < 16) {
                 const salt = await bcrypt.genSalt(12);
-                const passwordHash = await bcrypt.hash(user.password, salt);
-                user.password = passwordHash;
+                user.password = await bcrypt.hash(user.password, salt);
                 return (options.validate = false);
             }
         };
